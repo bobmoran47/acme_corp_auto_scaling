@@ -12,7 +12,7 @@ filter {
 }
 
 
-module "acme_corp_vpc" {
+module "acme_vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
   name = var.environment.name
@@ -29,36 +29,36 @@ module "acme_corp_vpc" {
 }
 
 
-module "acme_corp_autoscaling" {
+module "acme_autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.5.2"
 
-  name = "acme_corp"
+  name = "acme"
 
   min_size            = var.asg_min
   max_size            = var.asg_max
-  vpc_zone_identifier = module.acme_corp_vpc.public_subnets
-  target_group_arns   = module.acme_corp_alb.target_group_arns
-  security_groups     = [module.aacme_corp_sg.security_group_id]
+  vpc_zone_identifier = module.acme_vpc.public_subnets
+  target_group_arns   = module.acme_alb.target_group_arns
+  security_groups     = [module.acme_sg.security_group_id]
   instance_type       = var.instance_type
   image_id            = data.aws_ami.app_ami.id
 }
 
-module "acme_corp_alb" {
+module "acme_alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "~> 6.0"
 
-  name = "acme_corp-alb"
+  name = "acme-alb"
 
   load_balancer_type = "application"
 
-  vpc_id             = module.acme_corp_vpc.vpc_id
-  subnets            = module.acme_corp_vpc.public_subnets
-  security_groups    = [module.acme_corp_sg.security_group_id]
+  vpc_id             = module.acme_vpc.vpc_id
+  subnets            = module.acme_vpc.public_subnets
+  security_groups    = [module.acme_sg.security_group_id]
 
   target_groups = [
     {
-      name_prefix      = "acme_corp-"
+      name_prefix      = "acme-"
       backend_protocol = "HTTP"
       backend_port     = 80
       target_type      = "instance"
@@ -78,12 +78,12 @@ module "acme_corp_alb" {
   }
 }
 
-module "acme_corp_sg" {
+module "acme_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.13.0"
 
-  vpc_id  = module.acme_corp_vpc.vpc_id
-  name    = "acme_corp"
+  vpc_id  = module.acme_vpc.vpc_id
+  name    = "acme"
   ingress_rules = ["https-443-tcp","http-80-tcp"]
   ingress_cidr_blocks = ["0.0.0.0/0"]
   egress_rules = ["all-all"]
