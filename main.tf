@@ -68,7 +68,7 @@ module "acme_alb" {
       target_type      = "instance"
     }
   ]
-
+}
  
 
  
